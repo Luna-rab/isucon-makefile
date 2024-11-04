@@ -149,24 +149,17 @@ mysql-push:
 	scp $(CURDIR)/mysql/$(DB_NAME)_schema.sql $(DB_SERVER):/home/isucon/$(DB_NAME)_schema.sql
 	ssh -t $(DB_SERVER) "mysqldef -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < ${MYSQLDEF_DIR}/$(DB_NAME)_schema.sql"
 
-.PHONY: profile
-profile:
-	myprofiler -host=$(DB_HOST) -user=$(DB_USER) -password=$(DB_PASS) -interval=0.2 -delay=10 -top=30
-
-.PHONY: profileL
-profileL:
-	myprofiler -host=$(DB_HOST) -user=$(DB_USER) -password=$(DB_PASS) -last=60 -delay=30 | rotatelogs logs/myprofiler.%Y%m%d 86400
-
 ALPSORT=sum
 ALPM=""
 .PHONY: alp
 alp:
 	@echo -e "\e[32maccess logをalpで出力します\e[0m"
 	ssh -t $(APP_SERVER_1) 'sudo alp json --file /var/log/nginx/access.log --sort=avg -r -m "/api/user/[^/]+/theme,/api/user/[^/]+/statistics,/api/user/[^/]+/icon,/api/user/[^/]+/livestream,/api/user/[^/]+,/api/livestream/[^/]+/livecomment/[^/]+/report,/api/livestream/[^/]+/livecomment,/api/livestream/[^/]+/reaction,/api/livestream/[^/]+/report,/api/livestream/[^/]+/ngwords,/api/livestream/[^/]+/moderate,/api/livestream/[^/]+/enter,/api/livestream/[^/]+/exit,/api/livestream/[^/]+/statistics,/api/livestream/[^/]+"'
+
 .PHONY: pt-query-digest
 pt-query-digest:
 	@echo -e "\e[32maccess logをpt-query-digestで出力します\e[0m"
-	ssh -t $(DB_SERVER) "sudo pt-query-digest $(MYSQL_LOG) > pt-query-digest.$(DATE).txt"
+	ssh -t $(DB_SERVER) "sudo pt-query-digest $(MYSQL_LOG) > $(MYSQL_LOG)/pt-query-digest-result.$(DATE).txt"
 
 .PHONY: restart
 restart:
@@ -178,18 +171,18 @@ restart:
 .PHONY: slow-on
 slow-on:
 	@echo -e "\e[32mMySQL slow-querry ONにします\e[0m"
-	ssh -t $(DB_SERVER) 'sudo mysql -e "set global slow_query_log_file = \'$(MYSQL_LOG)\'; set global long_query_time = 0; set global slow_query_log = ON; set global log_queries_not_using_indexes = ON; set global log_slow_slave_statements = 1;"'
-	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \'slow%\';"'
-	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \'log_queries%\';"'
-	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \'log_slow_slave%\';"'
+	ssh -t $(DB_SERVER) 'sudo mysql -e "set global slow_query_log_file = \"$(MYSQL_LOG)\"; set global long_query_time = 0; set global slow_query_log = ON; set global log_queries_not_using_indexes = ON; set global log_slow_slave_statements = ON;"'
+	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \"slow%\";"'
+	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \"log_queries%\";"'
+	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \"log_slow_slave%\";"'
 
 .PHONY: slow-off
 slow-off:
 	@echo -e "\e[32mMySQL slow-querry OFFにします\e[0m"
-	ssh -t $(DB_SERVER) 'sudo mysql -e "set global slow_query_log = OFF;"'
-	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \'slow%\';"'
-	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \'log_queries%\';"'
-	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \'log_slow_slave%\';"'
+	ssh -t $(DB_SERVER) 'sudo mysql -e "set global slow_query_log = OFF; set global log_queries_not_using_indexes = OFF; set global log_slow_slave_statements = OFF;"'
+	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \"slow%\";"'
+	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \"log_queries%\";"'
+	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \"log_slow_slave%\";"'
 
 .PHONY: rotate
 rotate:
