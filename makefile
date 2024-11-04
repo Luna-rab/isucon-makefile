@@ -48,24 +48,24 @@ fetch: fetch-webapp fetch-s1 fetch-s2 fetch-s3
 
 .PHONY: fetch-webapp
 fetch-webapp:
-	@echo "\e[32mWebAppを取得します\e[m"
+	@echo -e "\e[32mWebAppを取得します\e[0m"
 	rsync -az $(SERVER_1):/home/isucon/webapp/ $(CURDIR)/webapp
 
 .PHONY: fetch-s1
 fetch-s1:
-	@echo "\e[32mServer1の設定を取得します\e[m"
+	@echo -e "\e[32mServer1の設定を取得します\e[0m"
 	rsync -azL -e 'ssh -t' $(SERVER_1):/etc/mysql/ $(CURDIR)/s1/etc/mysql --rsync-path="sudo rsync"
 	rsync -azL -e 'ssh -t' $(SERVER_1):/etc/nginx/ $(CURDIR)/s1/etc/nginx --rsync-path="sudo rsync"
 
 .PHONY: fetch-s2
 fetch-s2:
-	@echo "\e[32mServer2の設定を取得します\e[m"
+	@echo -e "\e[32mServer2の設定を取得します\e[0m"
 	rsync -azL -e 'ssh -t' $(SERVER_2):/etc/mysql/ $(CURDIR)/s2/etc/mysql --rsync-path="sudo rsync"
 	rsync -azL -e 'ssh -t' $(SERVER_2):/etc/nginx/ $(CURDIR)/s2/etc/nginx --rsync-path="sudo rsync"
 
 .PHONY: fetch-s3
 fetch-s3:
-	@echo "\e[32mServer3の設定を取得します\e[m"
+	@echo -e "\e[32mServer3の設定を取得します\e[0m"
 	rsync -azL -e 'ssh -t' $(SERVER_3):/etc/mysql/ $(CURDIR)/s3/etc/mysql --rsync-path="sudo rsync"
 	rsync -azL -e 'ssh -t' $(SERVER_3):/etc/nginx/ $(CURDIR)/s3/etc/nginx --rsync-path="sudo rsync"
 
@@ -77,26 +77,26 @@ push: push-webapp push-s1 push-s2 push-s3
 
 .PHONY: push-webapp
 push-webapp:
-	@echo "\e[32mWebAppのデータを送信します\e[m"
+	@echo -e "\e[32mWebAppのデータを送信します\e[0m"
 	rsync -az --exclude='.gitkeep' $(CURDIR)/webapp/ $(SERVER_1):/home/isucon/webapp
 	rsync -az --exclude='.gitkeep' $(CURDIR)/webapp/ $(SERVER_2):/home/isucon/webapp
 	rsync -az --exclude='.gitkeep' $(CURDIR)/webapp/ $(SERVER_3):/home/isucon/webapp
 
 .PHONY: push-s1
 push-s1:
-	@echo "\e[32mServer1の設定を送信します\e[m"
+	@echo -e "\e[32mServer1の設定を送信します\e[0m"
 	rsync -az --exclude='.gitkeep' $(CURDIR)/s1/home/isucon/ $(SERVER_1):/home/isucon
 	rsync -azL -e 'ssh -t' --exclude='.gitkeep' $(CURDIR)/s1/etc/ $(SERVER_1):/etc --rsync-path="sudo rsync"
 
 .PHONY: push-s2
 push-s2:
-	@echo "\e[32mServer2の設定を送信します\e[m"
+	@echo -e "\e[32mServer2の設定を送信します\e[0m"
 	rsync -az --exclude='.gitkeep' $(CURDIR)/s2/home/isucon/ $(SERVER_2):/home/isucon
 	rsync -azL -e 'ssh -t' --exclude='.gitkeep' $(CURDIR)/s2/etc/ $(SERVER_2):/etc --rsync-path="sudo rsync"
 
 .PHONY: push-s3
 push-s3:
-	@echo "\e[32mServer3の設定を送信します\e[m"
+	@echo -e "\e[32mServer3の設定を送信します\e[0m"
 	rsync -az --exclude='.gitkeep' $(CURDIR)/s3/home/isucon/ $(SERVER_3):/home/isucon
 	rsync -azL -e 'ssh -t' --exclude='.gitkeep' $(CURDIR)/s3/etc/ $(SERVER_3):/etc --rsync-path="sudo rsync"
 
@@ -198,17 +198,3 @@ rotate:
 	ssh -t $(DB_SERVER) "sudo mv $(MYSQL_LOG) $(MYSQL_LOG).$(DATE)"
 	ssh -t $(DB_SERVER) "sudo touch $(MYSQL_LOG)"
 	ssh -t $(DB_SERVER) "sudo chown mysql:mysql $(MYSQL_LOG)"
-
-.PHONY: index
-index:
-	sudo mysql -e "alter table $(DB_NAME).livestream_tags add index idx_livestream_id (livestream_id);"
-	sudo mysql -e "alter table $(DB_NAME).livestream_tags add index idx_tag_id_livestream_id (tag_id, livestream_id);"
-	sudo mysql -e "alter table $(DB_NAME).livestreams add index idx_user_id (user_id);"
-	sudo mysql -e "alter table $(DB_NAME).icons add index idx_user_id (user_id);"
-	sudo mysql -e "alter table $(DB_NAME).livecomments add index idx_livestream_id (livestream_id);"
-	sudo mysql -e "alter table $(DB_NAME).themes add index idx_user_id (user_id);"
-	sudo mysql -e "alter table $(DB_NAME).reactions add index idx_livestream_id(livestream_id,created_at);"
-	sudo mysql -e "alter table $(DB_NAME).livestream_viewers_history add index idx_user_id_livestream_id  (user_id, livestream_id);"
-	sudo mysql -e "alter table $(DB_NAME).ng_words add index idx_livestream_id_user_id (livestream_id,user_id);"
-	sudo mysql -e "alter table $(DB_NAME).reservation_slots add index idx_end_at (end_at);"
-	sudo mysql -e "alter table $(DB_NAME).livecomment_reports add index idx_livestream_id(livestream_id);"
