@@ -33,6 +33,10 @@ DB_USER:=isucon
 DB_PASS:=isucon
 DB_NAME:=isupipe
 
+.PHONY: ssh
+ssh:
+	ssh $(APP_SERVER_1)
+
 .PHONY: fetch
 fetch:
 	@echo "\e[32mデータを取得します\e[m"
@@ -89,20 +93,24 @@ etc-backup:
 
 .PHONY: setup
 setup:
-	sudo dnf update
-	sudo dnf install -y git zsh unzip percona-toolkit redis graphviz
-	sudo dnf autoremove
-	wget https://github.com/KLab/myprofiler/releases/download/0.2/myprofiler.linux_amd64.tar.gz
-	tar xf myprofiler.linux_amd64.tar.gz
-	rm myprofiler.linux_amd64.tar.gz
-	sudo mv myprofiler /usr/local/bin/
-	sudo chmod +x /usr/local/bin/myprofiler
-	wget https://github.com/tkuchiki/alp/releases/download/v1.0.21/alp_linux_amd64.tar.gz
-	tar -zxvf alp_linux_amd64.tar.gz
-	rm alp_linux_amd64.tar.gz
-	sudo install alp /usr/local/bin/alp
-	sudo chmod +x /usr/local/bin/alp
-	wget -O - https://github.com/sqldef/sqldef/releases/latest/download/mysqldef_linux_amd64.tar.gz | tar xvz
+	ssh -t $(APP_SERVER_1) "\
+		sudo dnf update; \
+		sudo dnf install -y git zsh unzip percona-toolkit redis graphviz; \
+		sudo dnf autoremove; \
+		wget https://github.com/KLab/myprofiler/releases/download/0.2/myprofiler.linux_amd64.tar.gz; \
+		tar xf myprofiler.linux_amd64.tar.gz; \
+		rm myprofiler.linux_amd64.tar.gz; \
+		sudo mv myprofiler /usr/local/bin/; \
+		sudo chmod +x /usr/local/bin/myprofiler; \
+		wget https://github.com/tkuchiki/alp/releases/download/v1.0.21/alp_linux_amd64.tar.gz; \
+		tar -zxvf alp_linux_amd64.tar.gz; \
+		rm alp_linux_amd64.tar.gz; \
+		sudo install alp /usr/local/bin/alp; \
+		sudo chmod +x /usr/local/bin/alp; \
+		wget -O - https://github.com/sqldef/sqldef/releases/latest/download/mysqldef_linux_amd64.tar.gz | tar xvz; \
+		rm mysqldef_linux_amd64.tar.gz; \
+		sudo mv mysqldef /usr/local/bin/; \
+		sudo chmod +x /usr/local/bin/mysqldef;"
 
 .PHONY: cleanup
 cleanup:
@@ -111,15 +119,18 @@ cleanup:
 
 .PHONY: mysql
 mysql:
-	mysql -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME)
+	ssh -t $(DB_SERVER) "mysql -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME)"
 
 .PHONY: mysql-pull
 mysql-pull:
-	mysqldef -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(ARG) --export > ${MYSQLDEF_DIR}/$(ARG)_schema.sql
+	ssh -t $(DB_SERVER) "mysqldef -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) --export > ${MYSQLDEF_DIR}/$(DB_NAME)_schema.sql;"
+	scp isucon1:/home/isucon/$(DB_NAME)_schema.sql ~/
+	code ~/$(DB_NAME)_schema.sql
 
 .PHONY: mysql-push
 mysql-push:
-	mysqldef -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(ARG) --dry-run < ${MYSQLDEF_DIR}/$(ARG)_schema.sql
+	scp ~/$(DB_NAME)_schema.sql isucon1:/home/isucon/$(DB_NAME)_schema.sql
+	ssh -t $(DB_SERVER) "mysqldef -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < ${MYSQLDEF_DIR}/$(DB_NAME)_schema.sql"
 
 .PHONY: profile
 profile:
