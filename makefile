@@ -58,9 +58,9 @@ push:
 .PHONY: apply
 apply:
 	@echo "\e[32m設定を適用します\e[m"
-	ssh $(APP_SERVER_1) "cd $(WEBAPP_DIR)/go && make && sudo systemctl restart nginx.service"
-	ssh $(APP_SERVER_2) "cd $(WEBAPP_DIR)/go && make && sudo systemctl restart nginx.service"
-	ssh $(DB_SERVER) "sudo systemctl restart mysql.service"
+	ssh -t $(APP_SERVER_1) "export PATH=\$$PATH:/home/isucon/local/golang/bin; cd $(WEBAPP_DIR)/go; make; sudo systemctl restart nginx.service"
+	ssh -t $(APP_SERVER_2) "export PATH=\$$PATH:/home/isucon/local/golang/bin; cd $(WEBAPP_DIR)/go; make; sudo systemctl restart nginx.service"
+	ssh -t $(DB_SERVER) "sudo systemctl restart mysql.service"
 # TODO: マイグレーションを実行する場合も追記
 
 
