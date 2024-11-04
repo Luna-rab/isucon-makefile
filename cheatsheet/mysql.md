@@ -2,6 +2,16 @@
   - [max connections](#max-connections)
   - [innodb buffer](#innodb-buffer)
 
+# 2*appServer + 1*dbServerへの設定
+- my.cnfでbind-addressを0.0.0.0に設定する
+- DBのuserの設定をすべて許可に変更
+- アプリケーション側でDBのアドレスを変更する
+```
+CREATE USER 'isucon'@'%' IDENTIFIED BY 'isucon';
+GRANT ALL PRIVILEGES ON *.* TO 'isucon'@'%';
+FLUSH PRIVILEGES;
+```
+
 ## /etc/mysql/my.cnf
 
 ### max connections
