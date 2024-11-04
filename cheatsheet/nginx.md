@@ -1,4 +1,31 @@
+- [nginx ログ設定](#nginx-ログ設定)
 - [nginx.conf](#nginx.conf)
+
+## nginx ログ設定
+
+```
+# nginxのログ設定
+# /etc/nginx/nginx.conf を開いて以下を追加し、nginx再起動(sudo systemctl restart nginx)
+# /var/log/nginx/access.log にすでにログがある場合はあらかじめ削除しておく
+
+log_format json escape=json	'{"time":"$time_iso8601",'
+							'"host":"$remote_addr",'
+							'"port":"$remote_port",'
+							'"method":"$request_method",'
+							'"uri":"$request_uri",'
+							'"status":"$status",'
+							'"body_bytes":$body_bytes_sent,'
+							'"referer":"$http_referer",'
+							'"ua":"$http_user_agent",'
+							'"request_time":$request_time,'
+							'"response_time":"$upstream_response_time",'
+							'"req":"$request",'
+							'"forwardedfor":"$http_x_forwarded_for",'
+							'"cache":"$upstream_http_x_cache",'
+							'"runtime":"$upstream_http_x_runtime",'
+							'"vhost":"$host"}';
+access_log /var/log/nginx/access.log json;
+```
 
 ## /etc/nginx/nginx.conf
 

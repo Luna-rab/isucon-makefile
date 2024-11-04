@@ -102,39 +102,11 @@ push-s3:
 
 .PHONY: apply
 apply:
-	@echo "\e[32m設定を適用します\e[m"
+	@echo -e "\e[32m設定を適用します\e[0m"
 	ssh -t $(APP_SERVER_1) "export PATH=\$$PATH:/home/isucon/local/golang/bin; cd $(WEBAPP_DIR)/go; make; sudo systemctl restart nginx.service"
 	ssh -t $(APP_SERVER_2) "export PATH=\$$PATH:/home/isucon/local/golang/bin; cd $(WEBAPP_DIR)/go; make; sudo systemctl restart nginx.service"
 	ssh -t $(DB_SERVER) "sudo systemctl restart mysql.service"
 # TODO: マイグレーションを実行する場合も追記
-
-
-.PHONY: etc-reflesh
-etc:
-	@echo "\e[32m/etc にファイルを配置します\e[m"
-	sudo rm -rf /etc/mysql
-	sudo rm -rf /etc/nginx
-	sudo cp -r /usr/local/mysql /etc/mysql
-	sudo cp -r /usr/local/mnginx /etc/nginx
-
-.PHONY: etc-backup
-etc-backup:
-	@echo "\e[32m/etc を取得します\e[m"
-	sudo cp /etc/mysql /usr/local/mysql
-	sudo cp /etc/nginx /usr/local/nginx
-
-.PHONY: conf-backup
-etc-backup:
-	cd /home/
-	git clone https://github.com/cyg-isucon/getoru40man.git
-	sudo cp /etc/mysql/mysql.cnf /home/getoru40man/conf/mysql.cnf
-	sudo cp /etc/nginx/nginx.conf /home/getoru40man/conf/nginx.conf
-	cd /etc/mysql
-	sudo ln -s /home/getoru40man/conf/mysql.cnf mysql.cnf
-	cd /etc/nginx
-	sudo ln -s /home/getoru40man/conf/nginx.conf nginx.conf
-	git commit -m "conf backup" -a
-	git push origin master
 
 .PHONY: setup
 setup:
@@ -189,43 +161,43 @@ ALPSORT=sum
 ALPM=""
 .PHONY: alp
 alp:
-	@echo "\e[32maccess logをalpで出力します\e[m"
-	ssh -t ${APP_SERVER_1} 'sudo alp json --file /var/log/nginx/access.log --sort=avg -r -m "/api/user/[^/]+/theme,/api/user/[^/]+/statistics,/api/user/[^/]+/icon,/api/user/[^/]+/livestream,/api/user/[^/]+,/api/livestream/[^/]+/livecomment/[^/]+/report,/api/livestream/[^/]+/livecomment,/api/livestream/[^/]+/reaction,/api/livestream/[^/]+/report,/api/livestream/[^/]+/ngwords,/api/livestream/[^/]+/moderate,/api/livestream/[^/]+/enter,/api/livestream/[^/]+/exit,/api/livestream/[^/]+/statistics,/api/livestream/[^/]+"'
+	@echo -e "\e[32maccess logをalpで出力します\e[0m"
+	ssh -t $(APP_SERVER_1) 'sudo alp json --file /var/log/nginx/access.log --sort=avg -r -m "/api/user/[^/]+/theme,/api/user/[^/]+/statistics,/api/user/[^/]+/icon,/api/user/[^/]+/livestream,/api/user/[^/]+,/api/livestream/[^/]+/livecomment/[^/]+/report,/api/livestream/[^/]+/livecomment,/api/livestream/[^/]+/reaction,/api/livestream/[^/]+/report,/api/livestream/[^/]+/ngwords,/api/livestream/[^/]+/moderate,/api/livestream/[^/]+/enter,/api/livestream/[^/]+/exit,/api/livestream/[^/]+/statistics,/api/livestream/[^/]+"'
 .PHONY: pt-query-digest
 pt-query-digest:
-	@echo "\e[32maccess logをpt-query-digestで出力します\e[m"
-	ssh -t ${DB_SERVER} "sudo pt-query-digest $(MYSQL_LOG) > pt-query-digest.$(DATE).txt"
+	@echo -e "\e[32maccess logをpt-query-digestで出力します\e[0m"
+	ssh -t $(DB_SERVER) "sudo pt-query-digest $(MYSQL_LOG) > pt-query-digest.$(DATE).txt"
 
 .PHONY: restart
 restart:
-	@echo "\e[32mサービスを再起動します\e[m"
-	sudo systemctl restart mysql.service
-	sudo systemctl restart nginx.service
-	sudo systemctl restart redis.service
+	@echo -e "\e[32mサービスを再起動します\e[0m"
+	ssh -t $(DB_SERVER) "sudo systemctl restart mysql.service"
+	ssh -t $(APP_SERVER_1) "sudo systemctl restart nginx.service"
+	ssh -t $(APP_SERVER_1) "sudo systemctl restart redis.service"
 
 .PHONY: slow-on
 slow-on:
-	@echo "\e[32mMySQL slow-querry ONにします\e[m"
-	sudo mysql -e "set global slow_query_log_file = '$(MYSQL_LOG)'; set global long_query_time = 0; set global slow_query_log = ON; set global log_queries_not_using_indexes = ON; set global log_slow_slave_statements = 1;"
-	sudo mysql -e "show variables like 'slow%';"
-	sudo mysql -e "show variables like 'log_queries%';"
-	sudo mysql -e "show variables like 'log_slow_slave%';"
+	@echo -e "\e[32mMySQL slow-querry ONにします\e[0m"
+	ssh -t $(DB_SERVER) 'sudo mysql -e "set global slow_query_log_file = \'$(MYSQL_LOG)\'; set global long_query_time = 0; set global slow_query_log = ON; set global log_queries_not_using_indexes = ON; set global log_slow_slave_statements = 1;"'
+	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \'slow%\';"'
+	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \'log_queries%\';"'
+	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \'log_slow_slave%\';"'
 
 .PHONY: slow-off
 slow-off:
-	@echo "\e[32mMySQL slow-querry OFFにします\e[m"
-	sudo mysql -e "set global slow_query_log = OFF;"
-	sudo mysql -e "show variables like 'slow%';"
-	sudo mysql -e "show variables like 'log_queries%';"
-	sudo mysql -e "show variables like 'log_slow_slave%';"
+	@echo -e "\e[32mMySQL slow-querry OFFにします\e[0m"
+	ssh -t $(DB_SERVER) 'sudo mysql -e "set global slow_query_log = OFF;"'
+	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \'slow%\';"'
+	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \'log_queries%\';"'
+	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \'log_slow_slave%\';"'
 
 .PHONY: rotate
 rotate:
-	sudo mv $(NGINX_LOG) $(NGINX_LOG).$(DATE)
-	sudo nginx -s reopen
-	sudo mv $(MYSQL_LOG) $(MYSQL_LOG).$(DATE)
-	sudo touch $(MYSQL_LOG)
-	sudo chown mysql:mysql $(MYSQL_LOG)
+	ssh -t $(APP_SERVER_1) "sudo mv $(NGINX_LOG) $(NGINX_LOG).$(DATE)"
+	ssh -t $(APP_SERVER_1) "sudo nginx -s reopen"
+	ssh -t $(DB_SERVER) "sudo mv $(MYSQL_LOG) $(MYSQL_LOG).$(DATE)"
+	ssh -t $(DB_SERVER) "sudo touch $(MYSQL_LOG)"
+	ssh -t $(DB_SERVER) "sudo chown mysql:mysql $(MYSQL_LOG)"
 
 .PHONY: index
 index:
