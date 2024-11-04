@@ -49,7 +49,7 @@ push:
 	rsync -az $(CURDIR)/webapp/ $(APP_SERVER_2):$(WEBAPP_DIR)
 	rsync -az --exclude='$(CURDIR)/nginx/backup' $(CURDIR)/nginx/server2/ $(APP_SERVER_2):$(NGINX_DIR)
 
-	rsync -az --exclude='$(CURDIR)/mysql/backup' $(CURDIR)/mysql/ isucon:$(MYSQL_DIR)
+	rsync -az --exclude='$(CURDIR)/mysql/backup' $(CURDIR)/mysql/ $(DB_SERVER):$(MYSQL_DIR)
 
 .PHONY: apply
 apply:
