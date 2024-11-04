@@ -18,6 +18,9 @@ DATE:=$(shell date +%Y%m%d-%H%M%S)
 APP_SERVER_1:=isucon1
 APP_SERVER_2:=isucon2
 DB_SERVER:=isucon3
+SERVER_1:=isucon1
+SERVER_2:=isucon2
+SERVER_3:=isucon3
 
 WEBAPP_DIR:=/home/isucon/webapp
 NGINX_DIR:=/etc/nginx
@@ -37,23 +40,65 @@ DB_NAME:=isupipe
 ssh:
 	ssh $(APP_SERVER_1)
 
+#######
+# fetch
+#######
 .PHONY: fetch
-fetch:
-	@echo "\e[32mデータを取得します\e[m"
-	rsync -azL -e 'ssh -t' $(APP_SERVER_1):$(WEBAPP_DIR)/ $(CURDIR)/webapp --rsync-path="sudo rsync"
-	rsync -azL -e 'ssh -t' $(APP_SERVER_1):$(NGINX_DIR)/nginx.conf $(CURDIR)/nginx/backup --rsync-path="sudo rsync"
-	rsync -azL -e 'ssh -t' $(APP_SERVER_1):$(MYSQL_DIR)/my.cnf $(CURDIR)/mysql/backup --rsync-path="sudo rsync"
+fetch: fetch-webapp fetch-s1 fetch-s2 fetch-s3
 
+.PHONY: fetch-webapp
+fetch-webapp:
+	@echo "\e[32mWebAppを取得します\e[m"
+	rsync -az $(SERVER_1):/home/isucon/webapp/ $(CURDIR)/webapp
+
+.PHONY: fetch-s1
+fetch-s1:
+	@echo "\e[32mServer1の設定を取得します\e[m"
+	rsync -azL -e 'ssh -t' $(SERVER_1):/etc/mysql/ $(CURDIR)/s1/etc/mysql --rsync-path="sudo rsync"
+	rsync -azL -e 'ssh -t' $(SERVER_1):/etc/nginx/ $(CURDIR)/s1/etc/nginx --rsync-path="sudo rsync"
+
+.PHONY: fetch-s2
+fetch-s2:
+	@echo "\e[32mServer2の設定を取得します\e[m"
+	rsync -azL -e 'ssh -t' $(SERVER_2):/etc/mysql/ $(CURDIR)/s2/etc/mysql --rsync-path="sudo rsync"
+	rsync -azL -e 'ssh -t' $(SERVER_2):/etc/nginx/ $(CURDIR)/s2/etc/nginx --rsync-path="sudo rsync"
+
+.PHONY: fetch-s3
+fetch-s3:
+	@echo "\e[32mServer3の設定を取得します\e[m"
+	rsync -azL -e 'ssh -t' $(SERVER_3):/etc/mysql/ $(CURDIR)/s3/etc/mysql --rsync-path="sudo rsync"
+	rsync -azL -e 'ssh -t' $(SERVER_3):/etc/nginx/ $(CURDIR)/s3/etc/nginx --rsync-path="sudo rsync"
+
+######
+# push
+######
 .PHONY: push
-push:
-	@echo "\e[32mデータを送信します\e[m"
-	rsync -azL $(CURDIR)/webapp/ $(APP_SERVER_1):$(WEBAPP_DIR)
-	rsync -azL --exclude='$(CURDIR)/nginx/backup' $(CURDIR)/nginx/server1/nginx.conf $(APP_SERVER_1):$(NGINX_DIR)/nginx.conf --rsync-path="sudo rsync"
+push: push-webapp push-s1 push-s2 push-s3
 
-	rsync -azL $(CURDIR)/webapp/ $(APP_SERVER_2):$(WEBAPP_DIR)
-	rsync -azL --exclude='$(CURDIR)/nginx/backup' $(CURDIR)/nginx/server2/nginx.conf $(APP_SERVER_2):$(NGINX_DIR)/nginx.conf --rsync-path="sudo rsync"
+.PHONY: push-webapp
+push-webapp:
+	@echo "\e[32mWebAppのデータを送信します\e[m"
+	rsync -az --exclude='.gitkeep' $(CURDIR)/webapp/ $(SERVER_1):/home/isucon/webapp
+	rsync -az --exclude='.gitkeep' $(CURDIR)/webapp/ $(SERVER_2):/home/isucon/webapp
+	rsync -az --exclude='.gitkeep' $(CURDIR)/webapp/ $(SERVER_3):/home/isucon/webapp
 
-	rsync -azL --exclude='$(CURDIR)/mysql/backup' $(CURDIR)/mysql/my.cnf $(DB_SERVER):$(MYSQL_DIR)/my.cnf --rsync-path="sudo rsync"
+.PHONY: push-s1
+push-s1:
+	@echo "\e[32mServer1の設定を送信します\e[m"
+	rsync -az --exclude='.gitkeep' $(CURDIR)/s1/home/isucon/ $(SERVER_1):/home/isucon
+	rsync -azL -e 'ssh -t' --exclude='.gitkeep' $(CURDIR)/s1/etc/ $(SERVER_1):/etc --rsync-path="sudo rsync"
+
+.PHONY: push-s2
+push-s2:
+	@echo "\e[32mServer2の設定を送信します\e[m"
+	rsync -az --exclude='.gitkeep' $(CURDIR)/s2/home/isucon/ $(SERVER_2):/home/isucon
+	rsync -azL -e 'ssh -t' --exclude='.gitkeep' $(CURDIR)/s2/etc/ $(SERVER_2):/etc --rsync-path="sudo rsync"
+
+.PHONY: push-s3
+push-s3:
+	@echo "\e[32mServer3の設定を送信します\e[m"
+	rsync -az --exclude='.gitkeep' $(CURDIR)/s3/home/isucon/ $(SERVER_3):/home/isucon
+	rsync -azL -e 'ssh -t' --exclude='.gitkeep' $(CURDIR)/s3/etc/ $(SERVER_3):/etc --rsync-path="sudo rsync"
 
 .PHONY: apply
 apply:
