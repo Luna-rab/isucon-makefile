@@ -15,16 +15,15 @@
 DATE:=$(shell date +%Y%m%d-%H%M%S)
 
 # ssh configによる
-APP_SERVER_1:=isucon1
-APP_SERVER_2:=isucon2
-DB_SERVER:=isucon3
 SERVER_1:=isucon1
 SERVER_2:=isucon2
 SERVER_3:=isucon3
+APP_SERVER_1:=$(SERVER_1)
+APP_SERVER_2:=$(SERVER_2)
+DB_SERVER:=$(SERVER_3)
+
 
 WEBAPP_DIR:=/home/isucon/webapp
-NGINX_DIR:=/etc/nginx
-MYSQL_DIR:=/etc/mysql
 NGINX_LOG:=/var/log/nginx/access.log
 MYSQL_LOG:=/var/log/mysql/slow-query.log
 MYSQLDEF_DIR:=~
@@ -36,9 +35,6 @@ DB_USER:=isucon
 DB_PASS:=isucon
 DB_NAME:=isupipe
 
-.PHONY: ssh
-ssh:
-	ssh $(APP_SERVER_1)
 
 #######
 # fetch
