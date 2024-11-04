@@ -74,3 +74,36 @@ for _, ngword := range ngwords {
     }
 }
 ```
+
+### LOG
+
+## ログファイルに出力
+
+```
+// ログファイルを開く
+logFile, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+if err != nil {
+    log.Fatalf("Failed to open log file: %v", err)
+}
+defer logFile.Close()
+
+e := echo.New()
+e.Debug = true
+e.Logger.SetOutput(logFile)
+```
+
+### ログを止める
+
+```
+e.Debug = true
+e.Logger.SetLevel(echolog.DEBUG)
+e.Use(middleware.Logger())
+```
+
+↓↓↓
+
+```
+e.Debug = false
+e.Logger.SetLevel(echolog.WARN)
+// e.Use(middleware.Logger())
+```
