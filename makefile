@@ -124,12 +124,12 @@ mysql:
 .PHONY: mysql-pull
 mysql-pull:
 	ssh -t $(DB_SERVER) "mysqldef -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) --export > ${MYSQLDEF_DIR}/$(DB_NAME)_schema.sql;"
-	scp isucon1:/home/isucon/$(DB_NAME)_schema.sql ~/
-	code ~/$(DB_NAME)_schema.sql
+	scp $(DB_SERVER):/home/isucon/$(DB_NAME)_schema.sql $(CURDIR)/mysql/$(DB_NAME)_schema.sql
+	code $(CURDIR)/mysql/$(DB_NAME)_schema.sql
 
 .PHONY: mysql-push
 mysql-push:
-	scp ~/$(DB_NAME)_schema.sql isucon1:/home/isucon/$(DB_NAME)_schema.sql
+	scp $(CURDIR)/mysql/$(DB_NAME)_schema.sql $(DB_SERVER):/home/isucon/$(DB_NAME)_schema.sql
 	ssh -t $(DB_SERVER) "mysqldef -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < ${MYSQLDEF_DIR}/$(DB_NAME)_schema.sql"
 
 .PHONY: profile
