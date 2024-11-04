@@ -36,9 +36,9 @@ DB_NAME:=isupipe
 .PHONY: fetch
 fetch:
 	@echo "\e[32mデータを取得します\e[m"
-	scp $(APP_SERVER_1):$(WEBAPP_DIR) $(CURDIR)/webapp
-	scp $(APP_SERVER_1):$(NGINX_DIR) $(CURDIR)/nginx/backup
-	scp $(APP_SERVER_1):$(MYSQL_DIR) $(CURDIR)/mysql/backup
+	rsync -azL -e 'ssh -t' $(APP_SERVER_1):$(WEBAPP_DIR)/ $(CURDIR)/webapp --rsync-path="sudo rsync"
+	rsync -azL -e 'ssh -t' $(APP_SERVER_1):$(NGINX_DIR)/nginx.conf $(CURDIR)/nginx/backup --rsync-path="sudo rsync"
+	rsync -azL -e 'ssh -t' $(APP_SERVER_1):$(MYSQL_DIR)/my.cnf $(CURDIR)/mysql/backup --rsync-path="sudo rsync"
 
 .PHONY: push
 push:
