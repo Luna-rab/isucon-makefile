@@ -1,6 +1,30 @@
+# ### 基本構成案
+# 1. アプリケーションサーバー × 2台
+# 2. データベースサーバー × 1台
+#
+# ### 詳細な構成
+# [クライアント]
+#      ↓
+# [アプリケーションサーバー1 (Nginx + ロードバランサー + アプリケーション)]
+#      ↓
+# [アプリケーションサーバー2 (Nginx + アプリケーション)]
+#      ↓
+# [データベースサーバー (MySQL)]
+#
+
 DATE:=$(shell date +%Y%m%d-%H%M%S)
-CD:=$(CURDIR)
-PROJECT_ROOT:=/home/isucon/webapp
+
+# ssh configによる
+APP_SERVER_1:=isucon1
+APP_SERVER_2:=isucon2
+DB_SERVER:=isucon3
+
+WEBAPP_DIR:=/home/isucon/webapp
+NGINX_DIR:=/etc/nginx
+MYSQL_DIR:=/etc/mysql
+NGINX_LOG:=/var/log/nginx/access.log
+MYSQL_LOG:=/var/log/mysql/slow-query.log
+MYSQLDEF_DIR:=~
 
 # env.shに合わせて変更する
 DB_HOST:=127.0.0.1
@@ -9,27 +33,65 @@ DB_USER:=isucon
 DB_PASS:=isucon
 DB_NAME:=isupipe
 
-NGINX_LOG:=/var/log/nginx/access.log
-MYSQL_LOG:=/var/log/mysql/slow-query.log
+.PHONY: fetch
+fetch:
+	@echo "\e[32mデータを取得します\e[m"
+	scp $(APP_SERVER_1):$(WEBAPP_DIR) $(CURDIR)/webapp
+	scp $(APP_SERVER_1):$(NGINX_DIR) $(CURDIR)/nginx/backup
+	scp $(APP_SERVER_1):$(MYSQL_DIR) $(CURDIR)/mysql/backup
+
+.PHONY: push
+push:
+	@echo "\e[32mデータを送信します\e[m"
+	rsync -az $(CURDIR)/webapp/ $(APP_SERVER_1):$(WEBAPP_DIR)
+	rsync -az --exclude='$(CURDIR)/nginx/backup' $(CURDIR)/nginx/server1/ $(APP_SERVER_1):$(NGINX_DIR)
+
+	rsync -az $(CURDIR)/webapp/ $(APP_SERVER_2):$(WEBAPP_DIR)
+	rsync -az --exclude='$(CURDIR)/nginx/backup' $(CURDIR)/nginx/server2/ $(APP_SERVER_2):$(NGINX_DIR)
+
+	rsync -az --exclude='$(CURDIR)/mysql/backup' $(CURDIR)/mysql/ isucon:$(MYSQL_DIR)
+
+.PHONY: apply
+apply:
+	@echo "\e[32m設定を適用します\e[m"
+	ssh $(APP_SERVER_1) "cd $(WEBAPP_DIR)/go && make && sudo systemctl restart nginx.service"
+	ssh $(APP_SERVER_2) "cd $(WEBAPP_DIR)/go && make && sudo systemctl restart nginx.service"
+	ssh $(DB_SERVER) "sudo systemctl restart mysql.service"
+# TODO: マイグレーションを実行する場合も追記
+
 
 .PHONY: etc-reflesh
 etc:
 	@echo "\e[32m/etc にファイルを配置します\e[m"
 	sudo rm -rf /etc/mysql
 	sudo rm -rf /etc/nginx
-	sudo cp -r mysql /etc/mysql
-	sudo cp -r nginx /etc/nginx
+	sudo cp -r /usr/local/mysql /etc/mysql
+	sudo cp -r /usr/local/mnginx /etc/nginx
 
 .PHONY: etc-backup
 etc-backup:
 	@echo "\e[32m/etc を取得します\e[m"
-	sudo cp /etc/mysql mysql
-	sudo cp /etc/nginx nginx
+	sudo cp /etc/mysql /usr/local/mysql
+	sudo cp /etc/nginx /usr/local/nginx
+
+.PHONY: conf-backup
+etc-backup:
+	cd /home/
+	git clone https://github.com/cyg-isucon/getoru40man.git
+	sudo cp /etc/mysql/mysql.cnf /home/getoru40man/conf/mysql.cnf
+	sudo cp /etc/nginx/nginx.conf /home/getoru40man/conf/nginx.conf
+	cd /etc/mysql
+	sudo ln -s /home/getoru40man/conf/mysql.cnf mysql.cnf
+	cd /etc/nginx
+	sudo ln -s /home/getoru40man/conf/nginx.conf nginx.conf
+	git commit -m "conf backup" -a
+	git push origin master
 
 .PHONY: setup
 setup:
-	sudo apt update
-	sudo apt install -y git zsh unzip percona-toolkit
+	sudo dnf update
+	sudo dnf install -y git zsh unzip percona-toolkit redis graphviz
+	sudo dnf autoremove
 	wget https://github.com/KLab/myprofiler/releases/download/0.2/myprofiler.linux_amd64.tar.gz
 	tar xf myprofiler.linux_amd64.tar.gz
 	rm myprofiler.linux_amd64.tar.gz
@@ -40,14 +102,24 @@ setup:
 	rm alp_linux_amd64.tar.gz
 	sudo install alp /usr/local/bin/alp
 	sudo chmod +x /usr/local/bin/alp
+	wget -O - https://github.com/sqldef/sqldef/releases/latest/download/mysqldef_linux_amd64.tar.gz | tar xvz
 
 .PHONY: cleanup
 cleanup:
-	sudo apt remove -y git zsh unzip percona-toolkit
+	sudo dnf remove -y git zsh unzip percona-toolkit redis graphviz
+	sudo dnf autoremove
 
 .PHONY: mysql
 mysql:
 	mysql -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME)
+
+.PHONY: mysql-pull
+mysql-pull:
+	mysqldef -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(ARG) --export > ${MYSQLDEF_DIR}/$(ARG)_schema.sql
+
+.PHONY: mysql-push
+mysql-push:
+	mysqldef -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(ARG) --dry-run < ${MYSQLDEF_DIR}/$(ARG)_schema.sql
 
 .PHONY: profile
 profile:
@@ -63,12 +135,17 @@ ALPM=""
 alp:
 	@echo "\e[32maccess logをalpで出力します\e[m"
 	sudo alp json --file /var/log/nginx/access.log --sort=avg -r -m "/api/user/[^/]+/theme,/api/user/[^/]+/statistics,/api/user/[^/]+/icon,/api/user/[^/]+/livestream,/api/user/[^/]+,/api/livestream/[^/]+/livecomment/[^/]+/report,/api/livestream/[^/]+/livecomment,/api/livestream/[^/]+/reaction,/api/livestream/[^/]+/report,/api/livestream/[^/]+/ngwords,/api/livestream/[^/]+/moderate,/api/livestream/[^/]+/enter,/api/livestream/[^/]+/exit,/api/livestream/[^/]+/statistics,/api/livestream/[^/]+"
+.PHONY: pt-query-digest
+pt-query-digest:
+	@echo "\e[32maccess logをpt-query-digestで出力します\e[m"
+	sudo pt-query-digest $(MYSQL_LOG) > pt-query-digest.$(DATE).txt
 
 .PHONY: restart
 restart:
 	@echo "\e[32mサービスを再起動します\e[m"
 	sudo systemctl restart mysql.service
 	sudo systemctl restart nginx.service
+	sudo systemctl restart redis.service
 
 .PHONY: slow-on
 slow-on:
