@@ -43,13 +43,13 @@ fetch:
 .PHONY: push
 push:
 	@echo "\e[32mデータを送信します\e[m"
-	rsync -az $(CURDIR)/webapp/ $(APP_SERVER_1):$(WEBAPP_DIR)
-	rsync -az --exclude='$(CURDIR)/nginx/backup' $(CURDIR)/nginx/server1/ $(APP_SERVER_1):$(NGINX_DIR)
+	rsync -azL $(CURDIR)/webapp/ $(APP_SERVER_1):$(WEBAPP_DIR)
+	rsync -azL --exclude='$(CURDIR)/nginx/backup' $(CURDIR)/nginx/server1/nginx.conf $(APP_SERVER_1):$(NGINX_DIR)/nginx.conf --rsync-path="sudo rsync"
 
-	rsync -az $(CURDIR)/webapp/ $(APP_SERVER_2):$(WEBAPP_DIR)
-	rsync -az --exclude='$(CURDIR)/nginx/backup' $(CURDIR)/nginx/server2/ $(APP_SERVER_2):$(NGINX_DIR)
+	rsync -azL $(CURDIR)/webapp/ $(APP_SERVER_2):$(WEBAPP_DIR)
+	rsync -azL --exclude='$(CURDIR)/nginx/backup' $(CURDIR)/nginx/server2/nginx.conf $(APP_SERVER_2):$(NGINX_DIR)/nginx.conf --rsync-path="sudo rsync"
 
-	rsync -az --exclude='$(CURDIR)/mysql/backup' $(CURDIR)/mysql/ $(DB_SERVER):$(MYSQL_DIR)
+	rsync -azL --exclude='$(CURDIR)/mysql/backup' $(CURDIR)/mysql/my.cnf $(DB_SERVER):$(MYSQL_DIR)/my.cnf --rsync-path="sudo rsync"
 
 .PHONY: apply
 apply:
