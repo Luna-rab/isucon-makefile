@@ -107,27 +107,28 @@ apply:
 .PHONY: setup
 setup:
 	ssh -t $(APP_SERVER_1) "\
-		sudo dnf update; \
-		sudo dnf install -y git zsh unzip percona-toolkit redis graphviz; \
+		dnf install -y sudo; \
+		sudo dnf update -y; \
+		sudo dnf install -y git zsh unzip redis graphviz sudo wget -y; \
+		wget https://downloads.percona.com/downloads/percona-toolkit/2.2.20/RPM/percona-toolkit-2.2.20-1.noarch.rpm; \
+		sudo dnf install -y percona-toolkit-2.2.20-1.noarch.rpm; \
+		sudo dnf install perl-CPAN -y; \
+		rm -f percona-toolkit-2.2.20-1.noarch.rpm; \
 		sudo dnf autoremove; \
-		wget https://github.com/KLab/myprofiler/releases/download/0.2/myprofiler.linux_amd64.tar.gz; \
-		tar xf myprofiler.linux_amd64.tar.gz; \
-		rm myprofiler.linux_amd64.tar.gz; \
-		sudo mv myprofiler /usr/local/bin/; \
-		sudo chmod +x /usr/local/bin/myprofiler; \
 		wget https://github.com/tkuchiki/alp/releases/download/v1.0.21/alp_linux_amd64.tar.gz; \
 		tar -zxvf alp_linux_amd64.tar.gz; \
-		rm alp_linux_amd64.tar.gz; \
+		rm -f alp_linux_amd64.tar.gz; \
 		sudo install alp /usr/local/bin/alp; \
 		sudo chmod +x /usr/local/bin/alp; \
 		wget -O - https://github.com/sqldef/sqldef/releases/latest/download/mysqldef_linux_amd64.tar.gz | tar xvz; \
-		rm mysqldef_linux_amd64.tar.gz; \
+		rm -f mysqldef_linux_amd64.tar.gz; \
 		sudo mv mysqldef /usr/local/bin/; \
 		sudo chmod +x /usr/local/bin/mysqldef;"
 
 .PHONY: cleanup
 cleanup:
-	sudo dnf remove -y git zsh unzip percona-toolkit redis graphviz
+	sudo dnf remove -y git zsh unzip redis wget percona-toolkit.noarch perl-CPAN
+# TODO: graphviz(graphviz.aarch64)がremoveできない
 	sudo dnf autoremove
 
 .PHONY: mysql
