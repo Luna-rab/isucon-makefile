@@ -144,7 +144,21 @@ ALPM=""
 .PHONY: alp
 alp:
 	@echo -e "\e[32maccess logをalpで出力します\e[0m"
-	ssh -t $(APP_SERVER_1) 'sudo alp json --file /var/log/nginx/access.log --sort=avg -r -m "/api/user/[^/]+/theme,/api/user/[^/]+/statistics,/api/user/[^/]+/icon,/api/user/[^/]+/livestream,/api/user/[^/]+,/api/livestream/[^/]+/livecomment/[^/]+/report,/api/livestream/[^/]+/livecomment,/api/livestream/[^/]+/reaction,/api/livestream/[^/]+/report,/api/livestream/[^/]+/ngwords,/api/livestream/[^/]+/moderate,/api/livestream/[^/]+/enter,/api/livestream/[^/]+/exit,/api/livestream/[^/]+/statistics,/api/livestream/[^/]+"'
+	ssh -t $(APP_SERVER_1) 'sudo alp json --file /var/log/nginx/access.log --sort=sum -r -m \
+	"/api/admin/tenants/add,\
+	/api/admin/tenants/billing,\
+	/api/organizer/player/[^/]+/disqualified,\
+	/api/organizer/players/add,\
+	/api/organizer/players,\
+	/api/organizer/competitions/add,\
+	/api/organizer/competition/[^/]+/finish,\
+	/api/organizer/competition/[^/]+/score,\
+	/api/organizer/billing,\
+	/api/organizer/competitions,\
+	/api/player/competition/[^/]+/ranking,\
+	/api/player/competitions,\
+	/api/player/player/[^/]+,\
+	/api/me"'
 
 .PHONY: pt-query-digest
 pt-query-digest:
