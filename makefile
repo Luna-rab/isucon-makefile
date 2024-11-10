@@ -164,7 +164,8 @@ restart:
 	ssh -t $(DB_SERVER) "sudo systemctl restart mysql.service"
 	ssh -t $(APP_SERVER_1) "sudo systemctl restart nginx.service"
 	ssh -t $(APP_SERVER_1) "sudo systemctl restart redis.service"
-
+	ssh -t $(APP_SERVER_1) "sudo systemctl daemon-reload && sudo systemctl restart isuports.service"
+	ssh -t $(APP_SERVER_2) "sudo systemctl daemon-reload && sudo systemctl restart isuports.service"
 .PHONY: slow-on
 slow-on:
 	@echo -e "\e[32mMySQL slow-querry ONにします\e[0m"
