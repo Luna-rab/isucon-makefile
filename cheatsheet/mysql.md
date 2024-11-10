@@ -175,3 +175,29 @@ mysql -u username -p newdatabasename < dumpfile.sql
 #### 8.バックアップ
 
 最後に、移行後のデータベースをバックアップしておくと安心です。
+
+#### 9.データ量確認クエリ
+
+- table_name: テーブルの名前
+- engine: テーブルのストレージエンジン（例：InnoDB、MyISAM など）
+- table_rows: テーブル内の行数
+- avg_row_length: 平均行長
+- allMB: データ長とインデックス長の合計（メガバイト単位）
+- dMB: データ長（メガバイト単位）
+- iMB: インデックス長（メガバイト単位）
+
+```
+SELECT
+    table_name,
+    engine,
+    table_rows,
+    avg_row_length,
+    FLOOR((data_length + index_length) / 1024 / 1024) AS allMB,
+    FLOOR((data_length) / 1024 / 1024) AS dMB,
+    FLOOR((index_length) / 1024 / 1024) AS iMB
+FROM
+    information_schema.tables
+WHERE
+    table_schema = DATABASE()
+ORDER BY (data_length + index_length) DESC;
+```
