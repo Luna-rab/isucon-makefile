@@ -144,7 +144,7 @@ ALPM=""
 .PHONY: alp
 alp:
 	@echo -e "\e[32maccess logをalpで出力します\e[0m"
-	ssh -t $(APP_SERVER_1) 'sudo alp json --file /var/log/nginx/access.log --sort=sum -r -m \
+	ssh -t $(APP_SERVER_1) 'sudo alp json --file /var/log/nginx/access.log --sort=sum -r -o count,uri,method,min,max,avg,sum -m \
 	"/api/admin/tenants/add,\
 	/api/admin/tenants/billing,\
 	/api/organizer/player/[^/]+/disqualified,\
