@@ -154,8 +154,8 @@ alp:
 .PHONY: pt-query-digest
 pt-query-digest:
 	@echo -e "\e[32maccess logをpt-query-digestで出力します\e[0m"
-	ssh -t $(APP_SERVER_1) "sudo bash -c 'pt-query-digest $(MYSQL_LOG) > /var/log/mysql/pt-query-digest-result.$(DATE).txt'"
-	scp $(APP_SERVER_1):/var/log/mysql/pt-query-digest-result.$(DATE).txt $(CURDIR)/s1/etc/mysql/pt-query-digest-result.$(DATE).txt
+	ssh -t $(APP_SERVER_1) "sudo bash -c 'pt-query-digest $(MYSQL_LOG) > /home/isucon/pt-query-digest-result.$(DATE).txt'"
+	scp $(APP_SERVER_1):/home/isucon/pt-query-digest-result.$(DATE).txt $(CURDIR)/s1/etc/mysql/pt-query-digest-result.$(DATE).txt
 	code $(CURDIR)/s1/etc/mysql/pt-query-digest-result.$(DATE).txt
 
 .PHONY: restart
