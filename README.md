@@ -1,2 +1,2 @@
 # getoru40man
-CYISUCON 2024 ゲトる40マン
+ISUCON 2024 ゲトる40マン
