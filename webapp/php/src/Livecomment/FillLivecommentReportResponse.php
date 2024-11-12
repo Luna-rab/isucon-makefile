@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace IsuPipe\Livecomment;
 
-use IsuPipe\User\{ FillUserResponse, UserModel };
+use IsuPipe\User\{FillUserResponse, UserModel};
 use PDO;
 use RuntimeException;
 
@@ -18,8 +18,8 @@ trait FillLivecommentReportResponse
      */
     protected function fillLivecommentReportResponse(LivecommentReportModel $reportModel, PDO $db): LivecommentReport
     {
-        $stmt = $db->prepare('SELECT * FROM users WHERE id = ?');
-        $stmt->bindValue(1, $reportModel->userId, PDO::PARAM_INT);
+        $sql = 'SELECT * FROM users WHERE id = ' . (int)$reportModel->userId;
+        $stmt = $db->query($sql);
         $stmt->execute();
         $row = $stmt->fetch();
         if ($row === false) {
