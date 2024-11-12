@@ -52,18 +52,21 @@ fetch-s1:
 	@echo -e "\e[32mServer1の設定を取得します\e[0m"
 	rsync -azL -e 'ssh -t' $(SERVER_1):/etc/mysql/ $(CURDIR)/s1/etc/mysql --rsync-path="sudo rsync"
 	rsync -azL -e 'ssh -t' $(SERVER_1):/etc/nginx/ $(CURDIR)/s1/etc/nginx --rsync-path="sudo rsync"
+	rsync -azL -e 'ssh -t' $(SERVER_1):/home/isucon/env.sh $(CURDIR)/s1/home/isucon --rsync-path="sudo rsync"
 
 .PHONY: fetch-s2
 fetch-s2:
 	@echo -e "\e[32mServer2の設定を取得します\e[0m"
 	rsync -azL -e 'ssh -t' $(SERVER_2):/etc/mysql/ $(CURDIR)/s2/etc/mysql --rsync-path="sudo rsync"
 	rsync -azL -e 'ssh -t' $(SERVER_2):/etc/nginx/ $(CURDIR)/s2/etc/nginx --rsync-path="sudo rsync"
+	rsync -azL -e 'ssh -t' $(SERVER_2):/home/isucon/env.sh $(CURDIR)/s2/home/isucon --rsync-path="sudo rsync"
 
 .PHONY: fetch-s3
 fetch-s3:
 	@echo -e "\e[32mServer3の設定を取得します\e[0m"
 	rsync -azL -e 'ssh -t' $(SERVER_3):/etc/mysql/ $(CURDIR)/s3/etc/mysql --rsync-path="sudo rsync"
 	rsync -azL -e 'ssh -t' $(SERVER_3):/etc/nginx/ $(CURDIR)/s3/etc/nginx --rsync-path="sudo rsync"
+	rsync -azL -e 'ssh -t' $(SERVER_3):/home/isucon/env.sh $(CURDIR)/s3/home/isucon --rsync-path="sudo rsync"
 
 ######
 # push
