@@ -28,7 +28,8 @@ CREATE TABLE `livestream_tags` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `livestream_id` bigint NOT NULL,
   `tag_id` bigint NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `livestream_tags_livestream_id` (`livestream_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=11364 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `livestream_viewers_history` (
