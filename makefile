@@ -185,6 +185,5 @@ slow-off:
 rotate:
 	ssh -t $(APP_SERVER_1) "sudo mv $(NGINX_LOG) $(NGINX_LOG).$(DATE)"
 	ssh -t $(APP_SERVER_1) "sudo nginx -s reopen"
-	ssh -t $(DB_SERVER) "sudo mv $(MYSQL_LOG) $(MYSQL_LOG).$(DATE)"
-	ssh -t $(DB_SERVER) "sudo touch $(MYSQL_LOG)"
-	ssh -t $(DB_SERVER) "sudo chown mysql:mysql $(MYSQL_LOG)"
+	ssh -t $(DB_SERVER) "sudo cp $(MYSQL_LOG) $(MYSQL_LOG).$(DATE)"
+	ssh -t $(DB_SERVER) "sudo truncate -s 0 $(MYSQL_LOG)"
