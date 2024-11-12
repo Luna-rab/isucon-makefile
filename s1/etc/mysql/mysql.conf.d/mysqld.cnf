@@ -33,19 +33,20 @@ mysqlx-bind-address	= 127.0.0.1
 #
 # * Fine Tuning
 #
-key_buffer_size		= 16M
+key_buffer_size		= 64M
 # max_allowed_packet	= 64M
 # thread_stack		= 256K
 
-# thread_cache_size       = -1
+thread_cache_size       = 50
 
 # This replaces the startup script and checks MyISAM tables if needed
 # the first time they are touched
 myisam-recover-options  = BACKUP
 
-# max_connections        = 151
-
-# table_open_cache       = 4000
+max_connections        = 10000
+table_open_cache       = 5000
+table_definition_cache = 4000
+open_files_limit       = 65535
 
 #
 # * Logging and Replication
@@ -83,3 +84,9 @@ log_slow_slave_statements = ON
 max_binlog_size   = 100M
 # binlog_do_db		= include_database_name
 # binlog_ignore_db	= include_database_name
+
+innodb_buffer_pool_size = 3GB # ディスクイメージをメモリ上にバッファさせる値をきめる設定値
+innodb_flush_log_at_trx_commit = 2 # 1に設定するとトランザクション単位でログを出力するが 2 を指定すると1秒間に1回ログファイルに出力するようになる
+innodb_flush_method = O_DIRECT # データファイル、ログファイルの読み書き方式を指定する(実験する価値はある)
+innodb_log_file_size = 512M # 有効なトランザクションログのサイズを増やす
+innodb_log_buffer_size = 64M # デフォルトより大きめに設定
