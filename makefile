@@ -151,7 +151,22 @@ ALPM=""
 .PHONY: alp
 alp:
 	@echo -e "\e[32maccess logをalpで出力します\e[0m"
-	ssh -t $(APP_SERVER_1) 'sudo alp json --file /var/log/nginx/access.log --sort=avg -r -m "/api/user/[^/]+/theme,/api/user/[^/]+/statistics,/api/user/[^/]+/icon,/api/user/[^/]+/livestream,/api/user/[^/]+,/api/livestream/[^/]+/livecomment/[^/]+/report,/api/livestream/[^/]+/livecomment,/api/livestream/[^/]+/reaction,/api/livestream/[^/]+/report,/api/livestream/[^/]+/ngwords,/api/livestream/[^/]+/moderate,/api/livestream/[^/]+/enter,/api/livestream/[^/]+/exit,/api/livestream/[^/]+/statistics,/api/livestream/[^/]+"'
+	ssh -t $(APP_SERVER_1) 'sudo alp json --file /var/log/nginx/access.log --sort=avg -r -m \
+	"/api/user/[^/]+/theme,\
+	/api/user/[^/]+/statistics,\
+	/api/user/[^/]+/icon,\
+	/api/user/[^/]+/livestream,\
+	/api/user/[^/]+,\
+	/api/livestream/[^/]+/livecomment/[^/]+/report,\
+	/api/livestream/[^/]+/livecomment,\
+	/api/livestream/[^/]+/reaction,\
+	/api/livestream/[^/]+/report,\
+	/api/livestream/[^/]+/ngwords,\
+	/api/livestream/[^/]+/moderate,\
+	/api/livestream/[^/]+/enter,\
+	/api/livestream/[^/]+/exit,\
+	/api/livestream/[^/]+/statistics,\
+	/api/livestream/[^/]+"'
 
 .PHONY: pt-query-digest
 pt-query-digest:
