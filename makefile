@@ -109,12 +109,7 @@ setup:
 	ssh -t $(APP_SERVER_1) "\
 		apt-get install -y sudo; \
 		sudo apt-get update -y; \
-		sudo apt-get install -y git zsh unzip redis graphviz sudo wget -y; \
-		wget https://downloads.percona.com/downloads/percona-toolkit/2.2.20/RPM/percona-toolkit-2.2.20-1.noarch.rpm; \
-		sudo apt-get install -y percona-toolkit-2.2.20-1.noarch.rpm; \
-		sudo apt-get install perl-CPAN -y; \
-		rm -f percona-toolkit-2.2.20-1.noarch.rpm; \
-		sudo apt-get autoremove; \
+		sudo apt-get install -y git zsh unzip redis graphviz percona-toolkit sudo wget -y; \
 		wget https://github.com/tkuchiki/alp/releases/download/v1.0.21/alp_linux_amd64.tar.gz; \
 		tar -zxvf alp_linux_amd64.tar.gz; \
 		rm -f alp_linux_amd64.tar.gz; \
@@ -133,18 +128,18 @@ cleanup:
 
 .PHONY: mysql
 mysql:
-	ssh -t $(DB_SERVER) "mysql -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME)"
+	ssh -t $(APP_SERVER_1) "mysql -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME)"
 
 .PHONY: mysql-pull
 mysql-pull:
-	ssh -t $(DB_SERVER) "mysqldef -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) --export > ${MYSQLDEF_DIR}/$(DB_NAME)_schema.sql;"
-	scp $(DB_SERVER):/home/isucon/$(DB_NAME)_schema.sql $(CURDIR)/mysql/$(DB_NAME)_schema.sql
+	ssh -t $(APP_SERVER_1) "mysqldef -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) --export > ${MYSQLDEF_DIR}/$(DB_NAME)_schema.sql;"
+	scp $(APP_SERVER_1):/home/isucon/$(DB_NAME)_schema.sql $(CURDIR)/mysql/$(DB_NAME)_schema.sql
 	code $(CURDIR)/mysql/$(DB_NAME)_schema.sql
 
 .PHONY: mysql-push
 mysql-push:
-	scp $(CURDIR)/mysql/$(DB_NAME)_schema.sql $(DB_SERVER):/home/isucon/$(DB_NAME)_schema.sql
-	ssh -t $(DB_SERVER) "mysqldef -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < ${MYSQLDEF_DIR}/$(DB_NAME)_schema.sql"
+	scp $(CURDIR)/mysql/$(DB_NAME)_schema.sql $(APP_SERVER_1):/home/isucon/$(DB_NAME)_schema.sql
+	ssh -t $(APP_SERVER_1) "mysqldef -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < ${MYSQLDEF_DIR}/$(DB_NAME)_schema.sql"
 
 ALPSORT=sum
 ALPM=""
@@ -156,35 +151,35 @@ alp:
 .PHONY: pt-query-digest
 pt-query-digest:
 	@echo -e "\e[32maccess logをpt-query-digestで出力します\e[0m"
-	ssh -t $(DB_SERVER) "sudo pt-query-digest $(MYSQL_LOG) > $(MYSQL_LOG)/pt-query-digest-result.$(DATE).txt"
+	ssh -t $(APP_SERVER_1) "sudo pt-query-digest $(MYSQL_LOG) > $(MYSQL_LOG)/pt-query-digest-result.$(DATE).txt"
 
 .PHONY: restart
 restart:
 	@echo -e "\e[32mサービスを再起動します\e[0m"
-	ssh -t $(DB_SERVER) "sudo systemctl restart mysql.service"
+	ssh -t $(APP_SERVER_1) "sudo systemctl restart mysql.service"
 	ssh -t $(APP_SERVER_1) "sudo systemctl restart nginx.service"
 	ssh -t $(APP_SERVER_1) "sudo systemctl restart redis.service"
 
 .PHONY: slow-on
 slow-on:
 	@echo -e "\e[32mMySQL slow-querry ONにします\e[0m"
-	ssh -t $(DB_SERVER) 'sudo mysql -e "set global slow_query_log_file = \"$(MYSQL_LOG)\"; set global long_query_time = 0; set global slow_query_log = ON; set global log_queries_not_using_indexes = ON; set global log_slow_slave_statements = ON;"'
-	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \"slow%\";"'
-	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \"log_queries%\";"'
-	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \"log_slow_slave%\";"'
+	ssh -t $(APP_SERVER_1) 'sudo mysql -e "set global slow_query_log_file = \"$(MYSQL_LOG)\"; set global long_query_time = 0; set global slow_query_log = ON; set global log_queries_not_using_indexes = ON; set global log_slow_slave_statements = ON;"'
+	ssh -t $(APP_SERVER_1) 'sudo mysql -e "show variables like \"slow%\";"'
+	ssh -t $(APP_SERVER_1) 'sudo mysql -e "show variables like \"log_queries%\";"'
+	ssh -t $(APP_SERVER_1) 'sudo mysql -e "show variables like \"log_slow_slave%\";"'
 
 .PHONY: slow-off
 slow-off:
 	@echo -e "\e[32mMySQL slow-querry OFFにします\e[0m"
-	ssh -t $(DB_SERVER) 'sudo mysql -e "set global slow_query_log = OFF; set global log_queries_not_using_indexes = OFF; set global log_slow_slave_statements = OFF;"'
-	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \"slow%\";"'
-	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \"log_queries%\";"'
-	ssh -t $(DB_SERVER) 'sudo mysql -e "show variables like \"log_slow_slave%\";"'
+	ssh -t $(APP_SERVER_1) 'sudo mysql -e "set global slow_query_log = OFF; set global log_queries_not_using_indexes = OFF; set global log_slow_slave_statements = OFF;"'
+	ssh -t $(APP_SERVER_1) 'sudo mysql -e "show variables like \"slow%\";"'
+	ssh -t $(APP_SERVER_1) 'sudo mysql -e "show variables like \"log_queries%\";"'
+	ssh -t $(APP_SERVER_1) 'sudo mysql -e "show variables like \"log_slow_slave%\";"'
 
 .PHONY: rotate
 rotate:
 	ssh -t $(APP_SERVER_1) "sudo mv $(NGINX_LOG) $(NGINX_LOG).$(DATE)"
 	ssh -t $(APP_SERVER_1) "sudo nginx -s reopen"
-	ssh -t $(DB_SERVER) "sudo mv $(MYSQL_LOG) $(MYSQL_LOG).$(DATE)"
-	ssh -t $(DB_SERVER) "sudo touch $(MYSQL_LOG)"
-	ssh -t $(DB_SERVER) "sudo chown mysql:mysql $(MYSQL_LOG)"
+	ssh -t $(APP_SERVER_1) "sudo mv $(MYSQL_LOG) $(MYSQL_LOG).$(DATE)"
+	ssh -t $(APP_SERVER_1) "sudo touch $(MYSQL_LOG)"
+	ssh -t $(APP_SERVER_1) "sudo chown mysql:mysql $(MYSQL_LOG)"
