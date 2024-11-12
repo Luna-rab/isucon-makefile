@@ -107,14 +107,14 @@ apply:
 .PHONY: setup
 setup:
 	ssh -t $(APP_SERVER_1) "\
-		dnf install -y sudo; \
-		sudo dnf update -y; \
-		sudo dnf install -y git zsh unzip redis graphviz sudo wget -y; \
+		apt-get install -y sudo; \
+		sudo apt-get update -y; \
+		sudo apt-get install -y git zsh unzip redis graphviz sudo wget -y; \
 		wget https://downloads.percona.com/downloads/percona-toolkit/2.2.20/RPM/percona-toolkit-2.2.20-1.noarch.rpm; \
-		sudo dnf install -y percona-toolkit-2.2.20-1.noarch.rpm; \
-		sudo dnf install perl-CPAN -y; \
+		sudo apt-get install -y percona-toolkit-2.2.20-1.noarch.rpm; \
+		sudo apt-get install perl-CPAN -y; \
 		rm -f percona-toolkit-2.2.20-1.noarch.rpm; \
-		sudo dnf autoremove; \
+		sudo apt-get autoremove; \
 		wget https://github.com/tkuchiki/alp/releases/download/v1.0.21/alp_linux_amd64.tar.gz; \
 		tar -zxvf alp_linux_amd64.tar.gz; \
 		rm -f alp_linux_amd64.tar.gz; \
