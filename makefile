@@ -136,12 +136,12 @@ mysql:
 .PHONY: mysql-pull
 mysql-pull:
 	ssh -t $(APP_SERVER_1) "mysqldef -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) --export > ${MYSQLDEF_DIR}/$(DB_NAME)_schema.sql;"
-	scp $(APP_SERVER_1):/home/isucon/$(DB_NAME)_schema.sql $(CURDIR)/mysql/$(DB_NAME)_schema.sql
-	code $(CURDIR)/mysql/$(DB_NAME)_schema.sql
+	scp $(APP_SERVER_1):/home/isucon/$(DB_NAME)_schema.sql $(CURDIR)/s1/etc/mysql/$(DB_NAME)_schema.sql
+	code $(CURDIR)/s1/etc/mysql/$(DB_NAME)_schema.sql
 
 .PHONY: mysql-push
 mysql-push:
-	scp $(CURDIR)/mysql/$(DB_NAME)_schema.sql $(APP_SERVER_1):/home/isucon/$(DB_NAME)_schema.sql
+	scp $(CURDIR)/s1/etc/mysql/$(DB_NAME)_schema.sql $(APP_SERVER_1):/home/isucon/$(DB_NAME)_schema.sql
 	ssh -t $(APP_SERVER_1) "mysqldef -h$(DB_HOST) -P$(DB_PORT) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < ${MYSQLDEF_DIR}/$(DB_NAME)_schema.sql"
 
 ALPSORT=sum
@@ -155,6 +155,8 @@ alp:
 pt-query-digest:
 	@echo -e "\e[32maccess logをpt-query-digestで出力します\e[0m"
 	ssh -t $(APP_SERVER_1) "sudo bash -c 'pt-query-digest $(MYSQL_LOG) > /var/log/mysql/pt-query-digest-result.$(DATE).txt'"
+	scp $(APP_SERVER_1):/var/log/mysql/pt-query-digest-result.$(DATE).txt $(CURDIR)/s1/etc/mysql/pt-query-digest-result.$(DATE).txt
+	code $(CURDIR)/s1/etc/mysql/pt-query-digest-result.$(DATE).txt
 
 .PHONY: restart
 restart:
