@@ -161,9 +161,11 @@ pt-query-digest:
 .PHONY: restart
 restart:
 	@echo -e "\e[32mサービスを再起動します\e[0m"
+	make rotate
 	ssh -t $(APP_SERVER_1) "sudo systemctl restart mysql.service"
 	ssh -t $(APP_SERVER_1) "sudo systemctl restart nginx.service"
 	ssh -t $(APP_SERVER_1) "sudo systemctl restart redis.service"
+	ssh -t $(APP_SERVER_1) "sudo systemctl restart isupipe-go.service"
 
 .PHONY: slow-on
 slow-on:
